@@ -1,0 +1,300 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); background: transparent; }
+  #app { display: flex; gap: 0; min-height: 600px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; background: var(--color-background-primary); }
+  #sidebar { width: 200px; flex-shrink: 0; border-right: 0.5px solid var(--color-border-tertiary); background: var(--color-background-secondary); padding: 16px 0; }
+  #sidebar h2 { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); padding: 0 16px 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .week-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 16px; background: none; border: none; cursor: pointer; text-align: left; font-family: var(--font-sans); font-size: 13px; color: var(--color-text-secondary); border-radius: 0; transition: background 0.15s; }
+  .week-btn:hover { background: var(--color-background-primary); }
+  .week-btn.active { background: var(--color-background-primary); color: var(--color-text-primary); font-weight: 500; }
+  .week-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .week-prog { font-size: 11px; color: var(--color-text-tertiary); margin-left: auto; }
+  #main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  #top-bar { padding: 16px 20px; border-bottom: 0.5px solid var(--color-border-tertiary); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  #top-bar h1 { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+  #top-bar p { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+  .stats-row { display: flex; gap: 8px; }
+  .stat-pill { font-size: 12px; padding: 4px 10px; border-radius: 20px; border: 0.5px solid var(--color-border-tertiary); color: var(--color-text-secondary); background: var(--color-background-secondary); }
+  .stat-pill span { color: var(--color-text-primary); font-weight: 500; }
+  #days-grid { padding: 16px 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; overflow-y: auto; max-height: 520px; }
+  .day-card { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 12px; cursor: pointer; transition: border-color 0.15s; background: var(--color-background-primary); }
+  .day-card:hover { border-color: var(--color-border-secondary); }
+  .day-card.done { background: var(--color-background-secondary); opacity: 0.7; }
+  .day-card.active-day { border-color: #BA7517; border-width: 1.5px; }
+  .day-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .day-num { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); }
+  .format-badge { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 500; }
+  .fmt-reels { background: #FAEEDA; color: #633806; }
+  .fmt-carrossel { background: #E6F1FB; color: #0C447C; }
+  .fmt-foto { background: #EAF3DE; color: #3B6D11; }
+  .fmt-stories { background: #FBEAF0; color: #72243E; }
+  .day-title { font-size: 13px; color: var(--color-text-primary); line-height: 1.4; }
+  .day-done-check { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--color-border-secondary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .day-done-check.checked { background: #639922; border-color: #639922; }
+  #detail-panel { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.35); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+  #detail-panel.open { display: flex; }
+  #detail-box { background: var(--color-background-primary); border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary); width: 100%; max-width: 500px; max-height: 80vh; overflow-y: auto; padding: 20px; }
+  #detail-box h3 { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+  #detail-box .sub { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 16px; }
+  .detail-section { margin-bottom: 14px; }
+  .detail-section label { font-size: 11px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 5px; font-weight: 500; }
+  .detail-section p { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; }
+  .detail-section ul { font-size: 13px; color: var(--color-text-secondary); padding-left: 16px; line-height: 1.8; }
+  .ai-area { background: var(--color-background-secondary); border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); padding: 12px; min-height: 80px; font-size: 13px; color: var(--color-text-primary); line-height: 1.6; white-space: pre-wrap; }
+  .btn-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .btn { font-size: 13px; padding: 7px 14px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: none; cursor: pointer; font-family: var(--font-sans); color: var(--color-text-primary); transition: background 0.1s; }
+  .btn:hover { background: var(--color-background-secondary); }
+  .btn.primary { background: #EF9F27; border-color: #EF9F27; color: #412402; font-weight: 500; }
+  .btn.primary:hover { background: #BA7517; border-color: #BA7517; color: #fff; }
+  .btn.success { background: #639922; border-color: #639922; color: #fff; font-weight: 500; }
+  .btn.success:hover { background: #3B6D11; }
+  .btn-close { float: right; font-size: 18px; background: none; border: none; cursor: pointer; color: var(--color-text-tertiary); line-height: 1; }
+  .stories-section { padding: 12px 20px; border-top: 0.5px solid var(--color-border-tertiary); background: var(--color-background-secondary); }
+  .stories-section h4 { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; }
+  .stories-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .story-chip { font-size: 11px; padding: 4px 10px; border-radius: 20px; border: 0.5px solid var(--color-border-tertiary); cursor: pointer; transition: all 0.1s; color: var(--color-text-secondary); background: var(--color-background-primary); }
+  .story-chip.done { background: #EAF3DE; border-color: #97C459; color: #3B6D11; }
+  .loading-dots::after { content: ''; animation: dots 1.2s infinite; }
+  @keyframes dots { 0%{content:'.'} 33%{content:'..'} 66%{content:'...'} }
+</style>
+
+<div id="app">
+  <div id="sidebar">
+    <h2>Semanas</h2>
+    <div id="week-nav"></div>
+    <div style="padding: 16px; margin-top: 8px; border-top: 0.5px solid var(--color-border-tertiary);">
+      <p style="font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 6px; font-weight:500; letter-spacing:0.06em; text-transform:uppercase;">Progresso</p>
+      <div style="height:4px; background: var(--color-border-tertiary); border-radius:4px; overflow:hidden;">
+        <div id="progress-bar" style="height:100%; background:#EF9F27; border-radius:4px; transition:width 0.3s;"></div>
+      </div>
+      <p id="progress-text" style="font-size:11px; color:var(--color-text-tertiary); margin-top:5px;"></p>
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="top-bar">
+      <div>
+        <h1 id="week-title">Semana 1</h1>
+        <p id="week-obj"></p>
+      </div>
+      <div class="stats-row" id="stats-row"></div>
+    </div>
+    <div id="days-grid"></div>
+    <div class="stories-section">
+      <h4>Stories do dia — <span id="stories-day-label">marque o que você postou hoje</span></h4>
+      <div class="stories-chips" id="stories-chips"></div>
+    </div>
+  </div>
+</div>
+
+<div id="detail-panel">
+  <div id="detail-box">
+    <button class="btn-close" onclick="closeDetail()">×</button>
+    <h3 id="d-title"></h3>
+    <p class="sub" id="d-sub"></p>
+    <div id="d-body"></div>
+    <div class="btn-row" id="d-btns"></div>
+  </div>
+</div>
+
+<script>
+const PLAN = [
+  { day:1, week:1, format:'Reels', title:'Pagando aluguel à toa', hook:'"Tem gente em Campos pagando aluguel à toa."', tema:'Você pode estar pagando mais no aluguel do que pagaria no seu apê.', cta:'Me chama que eu simulo sem custo.', slides:null },
+  { day:2, week:1, format:'Carrossel', title:'3 sinais de que já passou da hora', hook:null, tema:'3 sinais de que já passou da hora de sair do aluguel', cta:null, slides:['Título forte','Aluguel aumenta todo ano','Dinheiro não volta','Insegurança','Solução possível'] },
+  { day:3, week:1, format:'Reels', title:'O maior erro de quem quer financiar', hook:'"A maioria nem tenta porque acha que vai ser recusada."', tema:'O maior erro de quem quer financiar', cta:null, slides:null },
+  { day:4, week:1, format:'Foto', title:'Selfie — sua visão', hook:null, tema:'Meu trabalho não é vender apartamento. É ajudar pessoas a parar de perder dinheiro com aluguel.', cta:'Legenda contando sua visão de trabalho.', slides:null },
+  { day:5, week:1, format:'Reels', title:'FGTS parado', hook:'"Você pode ter dinheiro parado sem saber."', tema:'FGTS parado — como usar no seu apê', cta:null, slides:null },
+  { day:6, week:1, format:'Carrossel', title:'Quanto custa continuar no aluguel?', hook:null, tema:'Faz conta: R$800 × 12 meses = R$9.600 / ano. Em 5 anos = R$48.000. Dinheiro que some.', cta:null, slides:['R$800 × 12 = R$9.600/ano','R$800 × 5 anos = R$48.000','E em 10 anos?','Esse dinheiro poderia ser seu'] },
+  { day:7, week:1, format:'Stories', title:'Bastidores + enquete', hook:null, tema:'Bastidores do dia + enquete: "Se a parcela fosse parecida com teu aluguel, você financiaria?"', cta:null, slides:null },
+  { day:8, week:2, format:'Reels', title:'Ele achava impossível financiar…', hook:'"Ele achava impossível financiar…"', tema:'História real de cliente que conseguiu financiar mesmo achando que não conseguiria', cta:null, slides:null },
+  { day:9, week:2, format:'Carrossel', title:'Mitos sobre financiamento', hook:null, tema:'Principais mitos sobre financiamento imobiliário — desmistificar o processo', cta:null, slides:['Mito 1: precisa ter nome limpo perfeito','Mito 2: entrada muito alta','Mito 3: processo complicado','Mito 4: parcela sempre pesada','Realidade: é mais acessível do que parece'] },
+  { day:10, week:2, format:'Foto', title:'Foto no empreendimento', hook:null, tema:'"Toda semana eu vejo gente descobrindo que consegue financiar."', cta:'Foto sua no empreendimento MRV.', slides:null },
+  { day:11, week:2, format:'Reels', title:'Quanto precisa de entrada?', hook:'"Quanto você realmente precisa de entrada?"', tema:'Quanto precisa de entrada para financiar pela MRV/MCMV', cta:null, slides:null },
+  { day:12, week:2, format:'Carrossel', title:'Erros financeiros que prendem no aluguel', hook:null, tema:'Erros financeiros que prendem as pessoas no aluguel por anos', cta:null, slides:['Não guardar nada','Achar que não vai conseguir','Esperar o momento perfeito','Não simular','Primeiro passo: simule agora'] },
+  { day:13, week:2, format:'Reels', title:'Tour no decorado', hook:null, tema:'Tour curto no decorado — mostrar sensação, vida, conforto. Sem cara de propaganda.', cta:null, slides:null },
+  { day:14, week:2, format:'Stories', title:'Caixinha de perguntas', hook:null, tema:'Caixinha: "Pergunta qualquer coisa sobre financiamento"', cta:null, slides:null },
+  { day:15, week:3, format:'Reels', title:'Imagina teu filho crescendo aqui…', hook:'"Imagina teu filho crescendo num lugar assim…"', tema:'Apelo emocional — espaço, segurança, família', cta:null, slides:null },
+  { day:16, week:3, format:'Foto', title:'Família feliz (realista)', hook:null, tema:'"A sensação de abrir a porta do que é seu."', cta:'Foto realista de família — não stock.', slides:null },
+  { day:17, week:3, format:'Carrossel', title:'Quem pode usar FGTS?', hook:null, tema:'Quem pode usar o FGTS para comprar imóvel — regras e condições', cta:null, slides:['O que é o FGTS?','Quem tem direito','Condições para uso','Quanto pode usar','Como consultar seu saldo'] },
+  { day:18, week:3, format:'Reels', title:'Por que esperar pode piorar?', hook:'"Por que esperar pode piorar sua situação?"', tema:'Correção monetária, aumento de preços, aluguel subindo — esperar tem custo', cta:null, slides:null },
+  { day:19, week:3, format:'Carrossel', title:'Antes × Depois: aluguel vs imóvel próprio', hook:null, tema:'Comparativo visual: aluguel vs imóvel próprio em 5, 10 e 20 anos', cta:null, slides:['Aluguel: R$800/mês hoje → R$1.200/mês em 5 anos','Imóvel: parcela fixa, patrimônio crescendo','Quem sai na frente?','Os números falam'] },
+  { day:20, week:3, format:'Reels', title:'Quanto você já perdeu no aluguel?', hook:'"Quanto você já perdeu em aluguel?"', tema:'Calculadora visual de quanto a pessoa já pagou de aluguel', cta:null, slides:null },
+  { day:21, week:3, format:'Stories', title:'Bastidor + rotina + visitas', hook:null, tema:'Bastidor do dia: rotina, visitas ao empreendimento, atendimentos', cta:null, slides:null },
+  { day:22, week:4, format:'Reels', title:'Últimas chances da fase atual', hook:'"Últimas chances da fase atual"', tema:'Urgência real — fases do empreendimento, disponibilidade limitada', cta:null, slides:null },
+  { day:23, week:4, format:'Carrossel', title:'Como funciona o processo', hook:null, tema:'Passo a passo simples: do interesse até as chaves', cta:null, slides:['Passo 1: simulação gratuita','Passo 2: documentação','Passo 3: aprovação','Passo 4: assinatura','Passo 5: chaves na mão'] },
+  { day:24, week:4, format:'Foto', title:'Foto sua — sem compromisso', hook:null, tema:'"Se você quer sair do aluguel, eu posso te ajudar sem compromisso."', cta:'Foto sua com texto direto.', slides:null },
+  { day:25, week:4, format:'Reels', title:'Depoimento / história real', hook:null, tema:'Casos reais que você viu — cliente que conseguiu, família que realizou o sonho', cta:null, slides:null },
+  { day:26, week:4, format:'Carrossel', title:'Quanto ficaria sua parcela?', hook:null, tema:'Simulação visual de parcelas por faixa de renda — desmistificar os valores', cta:null, slides:['Renda R$2.000: parcela estimada','Renda R$3.000: parcela estimada','Renda R$4.000+: parcela estimada','Simule grátis comigo'] },
+  { day:27, week:4, format:'Reels', title:'Urgência — mais um ano no aluguel?', hook:'"Muita gente vai deixar pra depois… e continuar no aluguel mais um ano."', tema:'Urgência: quem deixa pra depois fica mais um ano pagando aluguel', cta:null, slides:null },
+  { day:28, week:4, format:'Reels', title:'CTA forte — simule grátis', hook:null, tema:'"Se você quer entender se consegue financiar, me chama agora no direct. Eu faço a simulação gratuitamente."', cta:'CTA direto. Contato no direct.', slides:null },
+];
+
+const WEEKS = [
+  { w:1, title:'Semana 1', obj:'Parar scroll + gerar reconhecimento', color:'#EF9F27' },
+  { w:2, title:'Semana 2', obj:'Criar confiança', color:'#378ADD' },
+  { w:3, title:'Semana 3', obj:'Gerar desejo', color:'#D4537E' },
+  { w:4, title:'Semana 4', obj:'Converter', color:'#639922' },
+];
+
+const STORIES_OPTS = ['rotina','café','visita','obra','decorado','trânsito','simulando','opinião','enquete'];
+
+let state = { done: {}, stories: {}, week: 1 };
+let genContent = {};
+
+async function loadState() {
+  try {
+    const r = await window.storage.get('pedro_state');
+    if (r) state = JSON.parse(r.value);
+  } catch(e) {}
+  render();
+}
+
+async function saveState() {
+  try { await window.storage.set('pedro_state', JSON.stringify(state)); } catch(e) {}
+}
+
+function render() {
+  renderWeekNav();
+  renderDays();
+  renderStories();
+  renderStats();
+}
+
+function renderWeekNav() {
+  const nav = document.getElementById('week-nav');
+  nav.innerHTML = WEEKS.map(w => {
+    const days = PLAN.filter(d => d.week === w.w);
+    const done = days.filter(d => state.done[d.day]).length;
+    return `<button class="week-btn ${state.week===w.w?'active':''}" onclick="setWeek(${w.w})">
+      <span class="week-dot" style="background:${w.color}"></span>
+      ${w.title}
+      <span class="week-prog">${done}/${days.length}</span>
+    </button>`;
+  }).join('');
+  const total = PLAN.length, done = Object.keys(state.done).filter(k=>state.done[k]).length;
+  document.getElementById('progress-bar').style.width = Math.round(done/total*100)+'%';
+  document.getElementById('progress-text').textContent = `${done} de ${total} posts`;
+}
+
+function renderDays() {
+  const w = WEEKS.find(x=>x.w===state.week);
+  document.getElementById('week-title').textContent = w.title;
+  document.getElementById('week-obj').textContent = '🎯 '+w.obj;
+  const days = PLAN.filter(d=>d.week===state.week);
+  const total = days.length, done = days.filter(d=>state.done[d.day]).length;
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-pill"><span>${done}</span>/${total} feitos</div>
+    <div class="stat-pill"><span>${total-done}</span> pendentes</div>`;
+  const grid = document.getElementById('days-grid');
+  grid.innerHTML = days.map(d => {
+    const isDone = state.done[d.day];
+    const fmtClass = {Reels:'fmt-reels',Carrossel:'fmt-carrossel',Foto:'fmt-foto',Stories:'fmt-stories'}[d.format]||'fmt-foto';
+    return `<div class="day-card ${isDone?'done':''}" onclick="openDetail(${d.day})">
+      <div class="day-header">
+        <span class="day-num">Dia ${d.day}</span>
+        <span class="format-badge ${fmtClass}">${d.format}</span>
+        <div class="day-done-check ${isDone?'checked':''}">${isDone?'<svg width="10" height="10" viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>':''}</div>
+      </div>
+      <p class="day-title">${d.title}</p>
+    </div>`;
+  }).join('');
+}
+
+function renderStories() {
+  const today = new Date().toDateString();
+  const chips = document.getElementById('stories-chips');
+  chips.innerHTML = STORIES_OPTS.map(s => {
+    const key = today+'_'+s;
+    const isDone = state.stories[key];
+    return `<span class="story-chip ${isDone?'done':''}" onclick="toggleStory('${key}')">${isDone?'✓ ':''  }${s}</span>`;
+  }).join('');
+}
+
+function renderStats() {}
+
+function setWeek(w) { state.week = w; render(); }
+
+function toggleStory(key) {
+  state.stories[key] = !state.stories[key];
+  saveState(); renderStories();
+}
+
+function toggleDone(day) {
+  state.done[day] = !state.done[day];
+  saveState(); render(); openDetail(day);
+}
+
+function openDetail(day) {
+  const d = PLAN.find(x=>x.day===day);
+  if(!d) return;
+  const isDone = state.done[d.day];
+  const fmtClass = {Reels:'fmt-reels',Carrossel:'fmt-carrossel',Foto:'fmt-foto',Stories:'fmt-stories'}[d.format]||'fmt-foto';
+  document.getElementById('d-title').textContent = `Dia ${d.day} — ${d.title}`;
+  document.getElementById('d-sub').innerHTML = `<span class="format-badge ${fmtClass}" style="margin-right:6px">${d.format}</span> Semana ${d.week}`;
+  let body = `<div class="detail-section"><label>Tema / contexto</label><p>${d.tema}</p></div>`;
+  if(d.hook) body += `<div class="detail-section"><label>Gancho de abertura</label><p style="font-style:italic">${d.hook}</p></div>`;
+  if(d.cta) body += `<div class="detail-section"><label>CTA</label><p>${d.cta}</p></div>`;
+  if(d.slides) body += `<div class="detail-section"><label>Slides</label><ul>${d.slides.map(s=>`<li>${s}</li>`).join('')}</ul></div>`;
+  body += `<div class="detail-section"><label>Legenda / roteiro gerado por IA</label><div class="ai-area" id="ai-out">${genContent[day]||'<span style="color:var(--color-text-tertiary)">Clique em "Gerar com IA" para criar o roteiro completo</span>'}</div></div>`;
+  document.getElementById('d-body').innerHTML = body;
+  document.getElementById('d-btns').innerHTML = `
+    <button class="btn primary" onclick="generateContent(${day})"><i class="ti ti-sparkles" aria-hidden="true"></i> Gerar com IA</button>
+    <button class="btn ${isDone?'':'success'}" onclick="toggleDone(${day})">${isDone?'↩ Desmarcar':'✓ Marcar como feito'}</button>
+    <button class="btn" onclick="closeDetail()">Fechar</button>`;
+  document.getElementById('detail-panel').classList.add('open');
+}
+
+function closeDetail() { document.getElementById('detail-panel').classList.remove('open'); }
+
+async function generateContent(day) {
+  const d = PLAN.find(x=>x.day===day);
+  const aiOut = document.getElementById('ai-out');
+  if(!aiOut) return;
+  aiOut.innerHTML = '<span class="loading-dots" style="color:var(--color-text-tertiary)">Gerando roteiro</span>';
+  document.querySelector('#d-btns .btn.primary').disabled = true;
+
+  const formatTip = {
+    'Reels': 'Escreva um ROTEIRO COMPLETO para Reels (vídeo vertical de 30-60s) com: gancho nos primeiros 3 segundos, desenvolvimento com informação de valor, e CTA final. Formato: [GANCHO] / [DESENVOLVIMENTO] / [CTA].',
+    'Carrossel': 'Escreva o TEXTO COMPLETO de cada slide do carrossel. Inclua: texto do slide 1 (capa impactante), slides intermediários (conteúdo), slide final (CTA). Seja direto e visual.',
+    'Foto': 'Escreva uma LEGENDA COMPLETA para a foto (2-4 parágrafos). Tom pessoal, autêntico, que gere identificação. Inclua CTA sutil no final.',
+    'Stories': 'Escreva o ROTEIRO dos stories do dia. Sequência de 5-8 frames com o que mostrar em cada um. Inclua a enquete ou caixinha se aplicável.'
+  }[d.format] || 'Escreva o conteúdo completo.';
+
+  const prompt = `Você é Pedro Pires, corretor de imóveis da MRV em Campos dos Goytacazes, RJ. Seu perfil no Instagram é @pedroconsultor.campos.
+
+Você está dentro de um plano de 28 dias para gerar reconhecimento, confiança e vendas no Instagram.
+Semana ${d.week} — objetivo: ${WEEKS.find(w=>w.w===d.week).obj}
+
+Hoje é o Dia ${d.day} do plano.
+Formato: ${d.format}
+Tema: ${d.tema}
+${d.hook ? 'Gancho sugerido: '+d.hook : ''}
+${d.cta ? 'CTA sugerido: '+d.cta : ''}
+${d.slides ? 'Estrutura de slides: '+d.slides.join(' → ') : ''}
+
+${formatTip}
+
+Escreva em português brasileiro, tom natural e direto (não corporativo). Fale como um corretor humano e próximo, que entende de financiamento. Público-alvo: pessoas que pagam aluguel em Campos e podem se qualificar para Minha Casa Minha Vida.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{role:'user',content:prompt}] })
+    });
+    const data = await resp.json();
+    const text = data.content?.map(c=>c.text||'').join('\n') || 'Erro ao gerar conteúdo.';
+    genContent[day] = text;
+    if(aiOut) aiOut.textContent = text;
+  } catch(e) {
+    if(aiOut) aiOut.textContent = 'Erro de conexão. Tente novamente.';
+  }
+  const btn = document.querySelector('#d-btns .btn.primary');
+  if(btn) btn.disabled = false;
+}
+
+document.getElementById('detail-panel').addEventListener('click', function(e){ if(e.target===this) closeDetail(); });
+
+loadState();
+</script>
